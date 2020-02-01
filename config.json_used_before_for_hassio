@@ -1,0 +1,26 @@
+{
+  "name": "Pi-Somfy",
+  "version": "0.1",
+  "slug": "pi-somfy",
+  "description": "Pi-Somfy within hass.io (please disable protection mode)",
+  "arch": ["armhf", "armv7", "aarch64"],
+  "startup": "before",
+  "boot": "auto",
+  "options": {
+    "placeholder": true
+  },
+  "schema": {
+    "placeholder": "bool"
+  },
+  "ports": {
+    "80/tcp": 80
+  },
+  "gpio": true,
+  "full_access": true,
+  "apparmor": false,
+  "privileged": [ "SYS_RAWIO" ],
+  "devices": [
+    "/dev/ttyAMA0:/dev/ttyAMA0:rwm",
+    "/dev/mem:/dev/mem:rwm"
+  ]
+}
