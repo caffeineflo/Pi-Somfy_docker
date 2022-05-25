@@ -1,4 +1,4 @@
-FROM alpine
+FROM zinen2/alpine-pigpiod:latest
 
 ENV LANG C.UTF-8
 
@@ -7,6 +7,8 @@ COPY run.sh /
 
 # Install requirements for add-on
 RUN apk add --no-cache python3
+
+RUN apk add --no-cache py3-pip
 
 RUN pip3 install --upgrade pip
 
@@ -18,28 +20,22 @@ RUN set -xe \
     && rm -rf /var/cache/apk/* /tmp/*
 
 
-
 RUN apk add --no-cache --virtual .build-deps \
         gcc \
         make \
         musl-dev \
-        tar \
-  && wget -O /tmp/pigpio.tar abyz.me.uk/rpi/pigpio/pigpio.tar \
-  && tar -xf /tmp/pigpio.tar -C /tmp \
-  && sed -i "/ldconfig/d" /tmp/PIGPIO/Makefile \
-  && make -C /tmp/PIGPIO \
-  && make -C /tmp/PIGPIO install \
-  && rm -rf /tmp/PIGPIO /tmp/pigpio.tar \
+        unzip \
+  && wget -O /tmp/pigpio.zip https://github.com/joan2937/pigpio/archive/master.zip \
+  && unzip /tmp/pigpio.zip -d /tmp \
+  && sed -i "/ldconfig/d" /tmp/pigpio-master/Makefile \
+  && make -C /tmp/pigpio-master \
+  && make -C /tmp/pigpio-master install \
+  && rm -rf /tmp/pigpio-master /tmp/pigpio.zip \
   && apk del .build-deps
-
-
 
 # Install requirements for add-on
 RUN apk add --no-cache git \
     python3 
-
-
-
 
 RUN apk add --no-cache --virtual .build-deps \
         gcc \
@@ -53,11 +49,11 @@ RUN apk add --no-cache --virtual .build-deps \
 WORKDIR /app
 RUN git clone https://github.com/Nickduino/Pi-Somfy
 RUN sed -i 's/sudo\s//g' /app/Pi-Somfy/operateShutters.py
-# fix the way the shutter behaves in Home Assistant (do not gray out down button after pressing closed)
-RUN sed -i -E 's/"position_topic": "somfy\/'\''\+shutterId\+'\''\/level\/set_state",\s//g;s/,\s"state_open":\s"100",\s"state_closed": "0"//g;s/\s"set_position_topic":\s"somfy\/'\''\+shutterId\+'\''\/level\/cmd",//g' /app/Pi-Somfy/mymqtt.py
-RUN sed -i -e 's/pi\ =\ pigpio\.pi()/pi\ =\ pigpio\.pi("172.18.0.1")/g' /app/Pi-Somfy/operateShutters.py && sed -i -e 's/if\ sys\.version_info\[0\]\ <\ 3\:/return\ True\ # no need to start pigpiod inside docker, connecting to host instead!\n\ \ \ \ \ \ \ if\ sys\.version_info\[0\]\ <\ 3\:/g' /app/Pi-Somfy/operateShutters.py
 WORKDIR /app/data
 
 RUN chmod a+x /run.sh
 
 CMD [ "/run.sh" ]
+
+EXPOSE 80
+VOLUME /app/data
