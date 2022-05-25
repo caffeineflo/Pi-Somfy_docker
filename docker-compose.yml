@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  pi-somfy:
+    container_name: pi-somfy
+    build: .
+    ports:
+      - "8181:80"
+    volumes:
+      - /dockerfs/pi-somfy:/app/data
+    devices:
+      - /dev/gpiochip0:/dev/gpiochip0
+    privileged: true
